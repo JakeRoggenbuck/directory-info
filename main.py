@@ -1,40 +1,62 @@
-from functools import cached_property
-
-from os import listdir, getcwd
+#!/usr/bin/env python3
+from os import listdir, getcwd, chdir
 from pathlib import Path
+from termcolor import colored
+import attr
+
+
+@attr.s
+class Lang:
+    name: str = attr.ib()
+    emoji: str = attr.ib(default="📦")
+
+    def __hash__(self):
+        return self.name
+
+
+PYTHON = Lang("Python", "🐍")
+RUST = Lang("Rust", "🦀")
+JAVA = Lang("Java")
+JAVASCRIPT = Lang("JS")
 
 
 class Directory:
-    def __init__(self, path_str: str):
-        self.path_str = path_str
-        self.path = Path(self.path_str)
+    def __init__(self, path: Path):
+        self.path = path
 
-        if not self.path.is_dir():
-            self = None
+    @property
+    def has_git(self):
+        return (self.path / ".git").exists()
 
-        self.name = self.path_str.split("/")[-1]
+    @property
+    def git_status(self):
+        return ".git" if self.has_git else "----"
 
-    @cached_property
-    def is_dir(self):
-        return self.path.exists()
-
-    @cached_property
-    def files(self):
-        return listdir(self.path)
-
-    @cached_property
-    def has_readme(self):
-        for name in ["readme.md", "readme.rst"]:
-            if name in map(str.lower, self.files):
-                print(name)
-                return True
-
-        return False
+    @property
+    def name(self):
+        return colored(str(self.path.name), "blue", attrs=["bold"])
 
     def __repr__(self):
-        return f"{self.name}"
+        return self.git_status.ljust(5) + self.name
 
-if __name__ == "__main__":
-    dirs = map(lambda x: Directory(x), listdir(getcwd()))
+
+def create():
+    dirs = []
+    current_directory = Path(getcwd())
+
+    for file_path in current_directory.iterdir():
+        if file_path.is_dir():
+            directory = Directory(file_path)
+            dirs.append(directory)
+
+    return dirs
+
+
+def run(dirs: list):
     for directory in dirs:
         print(directory)
+
+
+if __name__ == "__main__":
+    directories = create()
+    run(directories)
