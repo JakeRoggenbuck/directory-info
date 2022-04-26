@@ -31,8 +31,8 @@ class Zebra:
         self.color_index = new
         return color
 
-    def pad(self, length: int):
-        return " " + colored((length - 2) * "-", self.color()) + " "
+    def pad(self, length: int, char="-"):
+        return " " + colored((length - 2) * char, self.color()) + " "
 
 
 ZEBRA = Zebra()
@@ -69,11 +69,13 @@ class Directory:
         first = self.git_status.ljust(5) + self.name
         second = self.url
 
+        char = "-" if len(self.url) > 2 else " "
+
         if len(first) > 55:
-            return first + ZEBRA.pad(3) + second
+            return first + ZEBRA.pad(3, char=char) + second
 
         length = 56 - len(first)
-        return first + ZEBRA.pad(length + 2) + second
+        return first + ZEBRA.pad(length + 2, char=char) + second
 
 
 def create():
