@@ -54,9 +54,9 @@ ZEBRA = Zebra()
 
 
 class Directory:
-    def __init__(self, path: Path, show_url: bool):
+    def __init__(self, path: Path, no_url: bool):
         self.path = path
-        self.show_url = show_url
+        self.no_url = no_url
 
     @property
     def has_git(self):
@@ -91,20 +91,24 @@ class Directory:
 
     def __repr__(self):
         first = self.git_status.ljust(5) + self.name
-        second = self.url if self.show_url else ""
+        url = "" if self.no_url else self.url
 
-        char = "-" if len(self.url) > 2 else " "
+        char = "-"
 
         out = first
 
         if len(first) > 55:
-            out += ZEBRA.pad(3, char=char) + second
+            out += ZEBRA.pad(3, char=char)
         else:
             length = 56 - len(first)
-            out += ZEBRA.pad(length + 2, char=char) + second
+            out += ZEBRA.pad(length + 2, char=char)
 
         if self.has_lang:
-            out += self.lang.emoji + " " + self.lang.name
+            out += (self.lang.emoji + " " + self.lang.name).ljust(9)
+        else:
+            out += " " * 10
+
+        out += url
 
         return out
 
@@ -128,12 +132,13 @@ def run(dirs: list):
 
 def parser():
     parse = argparse.ArgumentParser()
-    parse.add_argument("-u", "--url", help="Show URL", action="store_true")
+    parse.add_argument("--no-url", help="No URL", action="store_true")
+    parse.add_argument("-e", "--emoji", help="Show URL", action="store_true")
     return parse.parse_args()
 
 
 if __name__ == "__main__":
     args = parser()
 
-    directories = create(args.url)
+    directories = create(args.no_url)
     run(directories)
