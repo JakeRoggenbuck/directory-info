@@ -54,9 +54,10 @@ ZEBRA = Zebra()
 
 
 class Directory:
-    def __init__(self, path: Path, no_url: bool):
+    def __init__(self, path: Path, no_url: bool, no_emoji: bool):
         self.path = path
         self.no_url = no_url
+        self.no_emoji = no_emoji
 
     @property
     def has_git(self):
@@ -104,7 +105,8 @@ class Directory:
             out += ZEBRA.pad(length + 2, char=char)
 
         if self.has_lang:
-            out += (self.lang.emoji + " " + self.lang.name).ljust(9)
+            pre = " " if self.no_emoji else self.lang.emoji
+            out += (pre + " " + self.lang.name).ljust(10 if self.no_emoji else 9)
         else:
             out += " " * 10
 
@@ -113,13 +115,13 @@ class Directory:
         return out
 
 
-def create(show_url: bool):
+def create(show_url: bool, no_emoji: bool):
     dirs = []
     current_directory = Path(getcwd())
 
     for file_path in current_directory.iterdir():
         if file_path.is_dir():
-            directory = Directory(file_path, show_url)
+            directory = Directory(file_path, show_url, no_emoji)
             dirs.append(directory)
 
     return dirs
@@ -133,12 +135,12 @@ def run(dirs: list):
 def parser():
     parse = argparse.ArgumentParser()
     parse.add_argument("--no-url", help="No URL", action="store_true")
-    parse.add_argument("-e", "--emoji", help="Show URL", action="store_true")
+    parse.add_argument("--no-emoji", help="No Emoji", action="store_true")
     return parse.parse_args()
 
 
 if __name__ == "__main__":
     args = parser()
 
-    directories = create(args.no_url)
+    directories = create(args.no_url, args.no_emoji)
     run(directories)
